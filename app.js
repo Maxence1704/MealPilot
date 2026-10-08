@@ -218,7 +218,7 @@ function defaultProfile() {
     equipment: ['oven', 'hob', 'microwave', 'pan', 'pot'], ignoreEquipment: false,
     goals: ['balanced', 'protein'], otherGoal: '',
     likes: '', dislikes: '', allergies: '', excluded: '', diet: 'omnivore', cookingTime: 30, skill: 'beginner',
-    stores: ['Carrefour'],
+    stores: ['Carrefour'], grityIntegrationChoice: null,
   };
 }
 function totalPeople(profile) { return Math.max(1, Number(profile.adults || 0) + Number(profile.children || 0)); }
@@ -483,6 +483,12 @@ function optimizePlanToBudget(plan, profile) {
 
 function recipeArt(itemOrId) {
   const item = typeof itemOrId === 'string' ? getRecipe(itemOrId) : itemOrId;
+  let imageUrl = '';
+  try {
+    const parsed = new URL(item.imageUrl);
+    if (parsed.protocol === 'https:') imageUrl = parsed.href;
+  } catch (_) {}
+  if (imageUrl) return `<img class="recipe-photo" src="${escapeHtml(imageUrl)}" alt="Photo de ${escapeHtml(item.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   const palette = item.palette || ['#efe6d7', '#d6a15e', '#829b75', '#e6c77a'];
   let seed = Array.from(item.id || 'food').reduce((a, c) => (a * 33 + c.charCodeAt(0)) >>> 0, 13);
   const pieces = [];
@@ -674,7 +680,7 @@ function updateProfileField(key, value, { toast = true } = {}) {
   regenerateForProfileChange(key, toast ? message : '');
 }
 
-const ONBOARDING_STEPS = ['Le foyer', 'Présences', 'Le budget', 'Matériel', 'Objectifs', 'Préférences', 'Magasins'];
+const ONBOARDING_STEPS = ['Le foyer', 'Présences', 'Le budget', 'Matériel', 'Objectifs', 'Préférences', 'Grity', 'Magasins'];
 function onboardingTop() {
   return `<header class="onboarding-top">
     <a class="brand" href="#" aria-label="MealPilot"> <span class="brand-mark">${icon('leaf')}</span><span class="brand-name">Meal<span>Pilot</span></span></a>
@@ -748,6 +754,24 @@ function wizardStepContent() {
       <div class="field-full"><label class="field-label" for="skill">Niveau en cuisine</label><select class="select-field" id="skill" data-draft-field="skill">${skillOptions(p.skill)}</select></div>
       </div>`,
   };
+  if (onboardingStep === 6) {
+    const grityChoice = p.grityIntegrationChoice;
+    return {
+      title: 'Souhaites-tu connecter Grity ?',
+      description: 'MealPilot pourrait s’inspirer des recettes Grity et afficher leurs visuels, uniquement si Grity autorise cette intégration.',
+      html: `<div class="grity-choice-list">
+        <button class="grity-choice ${grityChoice === 'yes' ? 'selected' : ''}" data-action="draft-grity-choice" data-value="yes" aria-pressed="${grityChoice === 'yes'}">
+          <span class="grity-choice-icon">${icon('sparkles')}</span><span class="grity-choice-copy"><strong>Oui, je souhaite connecter Grity</strong><small>Pour m’inspirer de ses recettes et visuels, si leur usage est autorisé.</small></span><span class="grity-choice-check">${grityChoice === 'yes' ? icon('check') : ''}</span>
+        </button>
+        <button class="grity-choice ${grityChoice === 'no' ? 'selected' : ''}" data-action="draft-grity-choice" data-value="no" aria-pressed="${grityChoice === 'no'}">
+          <span class="grity-choice-icon muted">${icon('arrowRight')}</span><span class="grity-choice-copy"><strong>Non, continuer sans Grity</strong><small>MealPilot utilisera uniquement ses recettes intégrées.</small></span><span class="grity-choice-check">${grityChoice === 'no' ? icon('check') : ''}</span>
+        </button>
+      </div>
+      <div class="grity-security-note"><span class="grity-security-icon">${icon('shield')}</span><div><strong>Transparence et sécurité</strong><p>Cette réponse enregistre seulement ton souhait : le prototype ne se connecte pas encore à Grity et n’importe aucune donnée. Une vraie synchronisation exige un accès officiel (API, OAuth ou export) ainsi que l’autorisation d’utiliser les recettes et leurs images. MealPilot ne te demandera jamais ton mot de passe Grity.</p></div></div>
+      ${grityChoice === 'yes' ? '<p class="grity-choice-feedback" role="status">Ton souhait sera mémorisé lorsque tu valideras le quiz. L’import ne démarrera qu’après une intégration officielle.</p>' : ''}
+      <a class="grity-support-link" href="mailto:support@grity.com?subject=Demande%20d%E2%80%99int%C3%A9gration%20officielle%20Grity%20et%20MealPilot&body=Bonjour%2C%0A%0AJe%20souhaite%20savoir%20si%20Grity%20propose%20une%20API%2C%20une%20autorisation%20OAuth%20ou%20un%20export%20officiel%20permettant%20%C3%A0%20MealPilot%20d%E2%80%99importer%20des%20recettes%20et%20leurs%20images%20avec%20votre%20accord.%0A%0AMerci.">Demander une intégration officielle à Grity ${icon('arrowRight')}</a>`,
+    };
+  }
   const visibleStores = STORES.filter(item => normalizeText(item).includes(normalizeText(storeSearch)));
   return {
     title: 'Où fais-tu tes courses ?',
@@ -1180,6 +1204,7 @@ function handleClick(event) {
   if (action === 'draft-ignore') { draftProfile.ignoreEquipment = !draftProfile.ignoreEquipment; render(); return; }
   if (action === 'draft-goal') { draftProfile.goals = toggleArray(draftProfile.goals, el.dataset.id); render(); return; }
   if (action === 'draft-breakfast') { draftProfile.includeBreakfast = !draftProfile.includeBreakfast; render(); return; }
+  if (action === 'draft-grity-choice') { draftProfile.grityIntegrationChoice = el.dataset.value === 'yes' ? 'yes' : 'no'; render(); return; }
   if (action === 'draft-store') { draftProfile.stores = toggleArray(draftProfile.stores, el.dataset.id); render(); return; }
   if (action === 'generate-week') { startGeneration(); return; }
   if (action === 'view-meal') { openRecipeFromButton(el); return; }
