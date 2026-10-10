@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mealpilot-v2';
+const CACHE_NAME = 'mealpilot-v4';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,26 @@ const APP_ASSETS = [
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
+  './images/breakfast-eggs.jpg',
+  './images/breakfast-pancakes.jpg',
+  './images/breakfast-porridge.jpg',
+  './images/breakfast-smoothie.jpg',
+  './images/breakfast-yogurt.jpg',
+  './images/dinner-lentil-soup.jpg',
+  './images/dinner-mushroom-risotto.jpg',
+  './images/dinner-roast-chicken.jpg',
+  './images/dinner-salmon-zucchini.jpg',
+  './images/dinner-shakshuka.jpg',
+  './images/dinner-vegetarian-chili.jpg',
+  './images/dinner-zucchini-pasta.jpg',
+  './images/lunch-chicken-rice.jpg',
+  './images/lunch-chicken-wrap.jpg',
+  './images/lunch-chickpea-salad.jpg',
+  './images/lunch-chili.jpg',
+  './images/lunch-lentil-curry.jpg',
+  './images/lunch-omelette-potato.jpg',
+  './images/lunch-tofu-wok.jpg',
+  './images/lunch-tuna-pasta.jpg',
 ];
 
 self.addEventListener('install', event => {
