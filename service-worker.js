@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mealpilot-v4';
+const CACHE_NAME = 'mealpilot-v5';
 const APP_ASSETS = [
   './',
   './index.html',
