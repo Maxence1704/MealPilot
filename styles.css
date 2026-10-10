@@ -323,6 +323,9 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .section-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; color: var(--sage-dark); background: var(--sage-wash); }
 .section-icon .icon { width: 16px; height: 16px; }
 .profile-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.child-age-fields { width: 100%; margin-top: 13px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.profile-child-age-fields { grid-column: 1 / -1; margin-top: 0; }
+.child-age-field { min-width: 0; }
 .field-label { display: block; margin: 0 0 7px; color: #69736b; font-size: 10px; font-weight: 630; }
 .text-field, .select-field, .textarea-field { width: 100%; min-height: 41px; padding: 0 12px; border: 1px solid #e5eae3; border-radius: 10px; color: #39423b; background: #fcfdfb; font-size: 11px; outline: 0; transition: border .16s ease, background .16s ease; }
 .text-field:focus, .select-field:focus, .textarea-field:focus { border-color: #b8c8b6; background: #fff; }
@@ -520,6 +523,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .ingredient-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
 .recipe-ingredient { min-height: 35px; padding: 7px 9px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #edf0eb; border-radius: 9px; color: #68736a; font-size: 9px; }
 .recipe-ingredient strong { color: #4a554b; font-size: 9px; font-weight: 650; white-space: nowrap; }
+.recipe-ingredient-piece { justify-content: flex-start; color: #4a554b; font-weight: 650; }
 .equipment-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .equipment-tag { padding: 6px 8px; display: inline-flex; align-items: center; gap: 5px; border-radius: 8px; color: #6b766c; background: #f6f8f5; font-size: 9px; }
 .equipment-tag .icon { width: 13px; height: 13px; }
@@ -719,6 +723,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .grocery-item { grid-template-columns: 20px minmax(0,1fr) 54px; }
   .grocery-price { font-size: 9px; }
   .profile-fields { grid-template-columns: 1fr; }
+  .child-age-fields { grid-template-columns: 1fr; }
   .choice-grid-large { grid-template-columns: 1fr 1fr; }
   .choice-card { padding: 8px; }
   .recipe-grid { grid-template-columns: 1fr; }
