@@ -32,7 +32,12 @@ const APP_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_ASSETS))
+      .then(cache => Promise.all(APP_ASSETS.map(asset =>
+        cache.add(asset).catch(error => {
+          console.warn('MealPilot: asset non précaché, il sera chargé en ligne :', asset, error);
+          return null;
+        })
+      )))
       .then(() => self.skipWaiting())
   );
 });
@@ -53,7 +58,7 @@ self.addEventListener('fetch', event => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then(response => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
@@ -64,13 +69,15 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-      }
-      return response;
-    }))
-  );
+  // Network-first keeps the installed PWA up to date after each GitHub Pages deploy.
+  const networkFirst = fetch(request, { cache: 'no-cache' }).then(response => {
+    if (!response.ok) return response;
+    const copy = response.clone();
+    return caches.open(CACHE_NAME)
+      .then(cache => cache.put(request, copy))
+      .then(() => response)
+      .catch(() => response);
+  });
+
+  event.respondWith(networkFirst.catch(() => caches.match(request)));
 });
