@@ -240,6 +240,11 @@ const RECIPE_IMAGES = {
   'risotto-champignons': './images/dinner-mushroom-risotto.jpg',
   'poelee-legumes-oeufs': './images/lunch-omelette-potato.jpg',
 };
+const RECIPE_TYPE_FALLBACKS = {
+  breakfast: './images/breakfast-porridge.jpg',
+  lunch: './images/lunch-chicken-rice.jpg',
+  dinner: './images/dinner-salmon-zucchini.jpg',
+};
 RECIPES.forEach(item => { if (RECIPE_IMAGES[item.id]) item.imageUrl = RECIPE_IMAGES[item.id]; });
 
 const EQUIPMENT_OPTIONS = EQUIPMENT;
@@ -256,13 +261,42 @@ const DEFAULT_PANTRY = { rice: 500, pasta: 350, oats: 250, oliveOil: 150, garlic
 
 function defaultProfile() {
   return {
-    name: 'Marie', adults: 2, children: 2, childAges: '6 et 9 ans', individualProfiles: false, profileNotes: '',
+    name: 'Marie', adults: 2, children: 2, childAges: [6, 9], individualProfiles: false, profileNotes: '',
     budget: 100, budgetMode: 'strict', includeBreakfast: false,
     equipment: ['oven', 'hob', 'microwave', 'pan', 'pot'], ignoreEquipment: false,
     goals: ['balanced', 'protein'], otherGoal: '',
     likes: '', dislikes: '', allergies: '', excluded: '', diet: 'omnivore', cookingTime: 30, skill: 'beginner',
     stores: ['Carrefour'],
   };
+}
+const CHILD_AGE_OPTIONS = [
+  ['', 'Ne pas préciser'],
+  ['0', 'Moins d’un an'],
+  ...Array.from({ length: 17 }, (_, index) => [String(index + 1), `${index + 1} ${index === 0 ? 'an' : 'ans'}`]),
+];
+function normalizeChildAges(value, childCount) {
+  const count = Math.max(0, Math.min(12, Math.floor(Number(childCount) || 0)));
+  const values = Array.isArray(value) ? value : (String(value || '').match(/\d{1,2}/g) || []);
+  return Array.from({ length: count }, (_, index) => {
+    const raw = values[index];
+    if (raw === '' || raw == null) return '';
+    const age = Number(raw);
+    return Number.isInteger(age) && age >= 0 && age <= 17 ? String(age) : '';
+  });
+}
+function childAgeOptions(selected) {
+  const value = String(selected ?? '');
+  return CHILD_AGE_OPTIONS.map(([optionValue, label]) =>
+    `<option value="${optionValue}" ${value === optionValue ? 'selected' : ''}>${label}</option>`
+  ).join('');
+}
+function childAgeFieldsHtml(profile, scope) {
+  const ages = normalizeChildAges(profile.childAges, profile.children);
+  if (!ages.length) return '';
+  return `<div class="child-age-fields ${scope === 'profile' ? 'profile-child-age-fields' : ''}">${ages.map((age, index) => {
+    const id = `${scope}-child-age-${index + 1}`;
+    return `<div class="child-age-field"><label class="field-label" for="${id}">Enfant ${index + 1} · âge (facultatif)</label><select class="select-field" id="${id}" data-child-age-scope="${scope}" data-index="${index}">${childAgeOptions(age)}</select></div>`;
+  }).join('')}</div>`;
 }
 function totalPeople(profile) { return Math.max(1, Number(profile.adults || 0) + Number(profile.children || 0)); }
 function currentWeekDates() {
@@ -338,15 +372,28 @@ function roundPurchaseQty(qty, unit) {
   if (unit === 'piece') return Math.ceil(qty - 1e-6);
   return Math.ceil(qty * 10) / 10;
 }
-function formatRecipeQty(qty, unit) {
+const RECIPE_PIECE_NAMES = {
+  banana: ['banane', 'bananes'],
+  apple: ['pomme', 'pommes'],
+  eggs: ['œuf', 'œufs'],
+  garlic: ['gousse d’ail', 'gousses d’ail'],
+  tuna: ['boîte de thon', 'boîtes de thon'],
+  lemon: ['citron', 'citrons'],
+  stock: ['cube de bouillon', 'cubes de bouillon'],
+};
+function formatRecipeQty(qty, unit, ingredientId = '') {
   if (unit === 'g' || unit === 'ml') {
     const n = Math.round(qty / 5) * 5;
     return `${n} ${unit}`;
   }
   if (unit === 'piece') {
     const n = Math.round(qty * 2) / 2;
-    if (n % 1 === .5) return `${Math.floor(n)}½ ${Math.floor(n) === 0 ? 'pièce' : 'pièces'}`;
-    return `${n} ${n === 1 ? 'pièce' : 'pièces'}`;
+    const amount = n % 1 === .5
+      ? `${Math.floor(n) ? `${Math.floor(n)}½` : '½'}`
+      : String(n);
+    const names = RECIPE_PIECE_NAMES[ingredientId];
+    if (names) return `${amount} ${n <= 1 ? names[0] : names[1]}`;
+    return `${amount} ${n === 1 ? 'pièce' : 'pièces'}`;
   }
   return `${prettyNumber(qty, 1)} ${unit}`;
 }
@@ -396,6 +443,7 @@ function recipeAllowed(item, profile, { ignoreTime = false } = {}) {
   const allergyTerms = splitTerms(profile.allergies);
   const excludedTerms = [...splitTerms(profile.excluded), ...allergyTerms];
   const likes = splitTerms(profile.likes);
+  const dislikes = splitTerms(profile.dislikes);
   const searchName = normalizeText(recipeIngredientNameSearch(item));
   const allergenText = normalizeText(item.ingredients.flatMap(part => INGREDIENTS[part.ingredient]?.allergens || []).join(' '));
   const allergySynonyms = {
@@ -407,30 +455,72 @@ function recipeAllowed(item, profile, { ignoreTime = false } = {}) {
     const synonyms = allergySynonyms[term.replace(/\s/g, '')] || [term];
     if (synonyms.some(synonym => searchName.includes(synonym) || allergenText.includes(synonym))) return false;
   }
-  // The likes are intentionally a ranking boost rather than a hard filter.
+  // Likes/dislikes rank viable recipes; allergies and explicit exclusions remain hard filters.
   item._liked = likes.some(term => searchName.includes(term));
+  item._disliked = dislikes.some(term => searchName.includes(term));
   return true;
 }
 function preferenceScore(item, profile, usedRecipes, ingredientUse, seed) {
   let score = 0;
   const goals = profile.goals || [];
   const cost = recipeCostPerServing(item, profile);
-  if (goals.includes('balanced') || goals.includes('wellbeing')) score += item.tags.includes('balanced') ? .45 : 0;
-  if (goals.includes('protein') || goals.includes('muscle')) score += item.protein >= 25 ? .85 : item.protein >= 18 ? .38 : 0;
-  if (goals.includes('weight')) score += item.calories <= 500 ? .35 : 0;
-  if (goals.includes('vegetables')) score += item.tags.includes('vegetables') ? .7 : 0;
-  if (goals.includes('vegetarian')) score += item.tags.includes('vegetarian') ? .7 : 0;
-  if (goals.includes('time')) score += item.time <= 20 ? .65 : item.time <= 30 ? .2 : -.25;
-  if (goals.includes('save')) score -= cost * .7;
-  if (goals.includes('waste')) score += item.ingredients.reduce((total, part) => total + (ingredientUse[part.ingredient] ? .19 : 0), 0);
-  if (item._liked) score += .9;
-  if (goals.includes('save') || profile.budgetMode === 'strict') score -= cost * (goals.includes('save') ? .24 : .12);
+  const isBreakfast = item.type === 'breakfast';
+  const hasVegetables = item.tags.includes('vegetables');
+
+  // Each chosen goal now has enough weight to materially change the ranked menu.
+  if (goals.includes('balanced') || goals.includes('wellbeing')) {
+    score += item.tags.includes('balanced') ? 2.4 : -0.4;
+    if (item.protein >= (isBreakfast ? 12 : 20)) score += .8;
+    if (hasVegetables) score += .7;
+  }
+
+  if (goals.includes('weight')) {
+    const calorieTarget = isBreakfast ? 360 : 500;
+    score += item.calories <= calorieTarget ? 2.8 : item.calories <= calorieTarget + 70 ? .8 : -1.8;
+    if (item.protein >= (isBreakfast ? 12 : 22)) score += .9;
+    if (hasVegetables) score += .8;
+  }
+
+  if (goals.includes('protein') || goals.includes('muscle')) {
+    const proteinTarget = isBreakfast ? 15 : 27;
+    if (item.protein >= proteinTarget + 7) score += 4.0;
+    else if (item.protein >= proteinTarget) score += 3.0;
+    else if (item.protein >= proteinTarget - 4) score += 1.0;
+    else score -= 1.8;
+  }
+
+  if (goals.includes('vegetables')) score += hasVegetables ? 2.8 : -1.0;
+  if (goals.includes('vegetarian')) score += item.tags.includes('vegetarian') ? 1.6 : -4.0;
+  if (goals.includes('time')) score += item.time <= 20 ? 2.5 : item.time <= 25 ? 1.1 : item.time <= 30 ? .2 : -1.8;
+
+  if (goals.includes('save')) {
+    score += cost <= 2 ? 3.0 : cost <= 2.75 ? 1.8 : cost <= 3.5 ? .5 : -1.8;
+    score -= Math.max(0, cost - 3) * .7;
+  }
+
+  if (goals.includes('waste')) {
+    const ingredientCount = Math.max(1, item.ingredients.length);
+    const reusable = item.ingredients.reduce((total, part) =>
+      total + (ingredientUse[part.ingredient] ? 1 : 0), 0);
+    score += reusable / ingredientCount * 3.2;
+  }
+
+  if (item._liked) score += 2.0;
+  if (item._disliked) score -= 5.0;
+  if (profile.budgetMode === 'strict') score -= cost * .18;
+
   const used = usedRecipes[item.id] || 0;
-  score -= used * 3.1;
-  const pantryCount = item.ingredients.reduce((total, part) => total + ((state?.pantry?.[part.ingredient] || 0) > 0 ? .12 : 0), 0);
+  score -= used * 2.6;
+
+  const pantryCount = item.ingredients.reduce((total, part) =>
+    total + ((state?.pantry?.[part.ingredient] || 0) > 0 ? .12 : 0), 0);
   score += pantryCount;
-  const hash = Array.from(`${seed}-${item.id}`).reduce((total, char) => ((total * 31) + char.charCodeAt(0)) >>> 0, 7);
-  score += (hash % 1000) / 1000 * .34;
+
+  const hash = Array.from(`${seed}-${item.id}`).reduce(
+    (total, char) => ((total * 31) + char.charCodeAt(0)) >>> 0,
+    7
+  );
+  score += (hash % 1000) / 1000 * .24;
   return score;
 }
 function eligibleRecipes(type, profile, { ignoreTime = false } = {}) {
@@ -540,7 +630,8 @@ function optimizePlanToBudget(plan, profile) {
 function recipeArt(itemOrId) {
   const item = typeof itemOrId === 'string' ? getRecipe(itemOrId) : itemOrId;
   let imageUrl = '';
-  const candidateImage = String(item.imageUrl || '');
+  // New recipe photos are picked up automatically when named images/<recipe-id>.jpg.
+  const candidateImage = String(item.imageUrl || RECIPE_IMAGES[item.id] || `./images/${item.id}.jpg`);
   if (/^\.\/images\/[a-z0-9._-]+\.jpe?g$/i.test(candidateImage)) {
     imageUrl = candidateImage;
   } else {
@@ -549,7 +640,8 @@ function recipeArt(itemOrId) {
       if (parsed.protocol === 'https:') imageUrl = parsed.href;
     } catch (_) {}
   }
-  if (imageUrl) return `<img class="recipe-photo" src="${escapeHtml(imageUrl)}" alt="Photo de ${escapeHtml(item.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+  const fallbackImage = RECIPE_TYPE_FALLBACKS[item.type] || RECIPE_TYPE_FALLBACKS.dinner;
+  if (imageUrl) return `<img class="recipe-photo" src="${escapeHtml(imageUrl)}" data-fallback-src="${escapeHtml(fallbackImage)}" alt="Photo de ${escapeHtml(item.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   const palette = item.palette || ['#efe6d7', '#d6a15e', '#829b75', '#e6c77a'];
   let seed = Array.from(item.id || 'food').reduce((a, c) => (a * 33 + c.charCodeAt(0)) >>> 0, 13);
   const pieces = [];
@@ -603,6 +695,7 @@ function loadState() {
     const saved = JSON.parse(stored);
     const profile = { ...defaultProfile(), ...(saved.profile || {}) };
     if (profile.name === 'Camille') profile.name = 'Marie';
+    profile.childAges = normalizeChildAges(profile.childAges, profile.children);
     delete profile.grityIntegrationChoice;
     const weekAttendance = normalizeWeekAttendance(saved.weekAttendance, profile);
     state = {
@@ -733,6 +826,7 @@ function regenerateForProfileChange(field, message) {
 function updateProfileField(key, value, { toast = true } = {}) {
   const previousHouseholdSize = totalPeople(state.profile);
   state.profile[key] = value;
+  if (key === 'children') state.profile.childAges = normalizeChildAges(state.profile.childAges, state.profile.children);
   if (['adults', 'children'].includes(key)) updateDefaultAttendanceCounts(previousHouseholdSize, totalPeople(state.profile));
   let message = '';
   if (['goals', 'otherGoal', 'likes', 'dislikes', 'allergies', 'excluded', 'diet', 'cookingTime', 'skill', 'equipment', 'ignoreEquipment', 'includeBreakfast'].includes(key)) message = 'Semaine recalculée selon tes préférences.';
@@ -773,7 +867,7 @@ function wizardStepContent() {
         ${wizardCounter('adultes', 'Adultes', p.adults, 'data-field="adults"')}
         ${wizardCounter('enfants', 'Enfants', p.children, 'data-field="children"')}
       </div>
-      ${Number(p.children) > 0 ? `<div class="wizard-inline-field"><label class="field-label" for="child-ages">Âge approximatif des enfants</label><input id="child-ages" class="text-field" type="text" data-draft-field="childAges" value="${escapeHtml(p.childAges || '')}" placeholder="Ex. 6 et 9 ans" /></div>` : ''}
+      ${childAgeFieldsHtml(p, 'draft')}
       <div class="household-total" style="margin-top:13px"><span>Personnes à table</span><strong>${totalPeople(p)} ${totalPeople(p) > 1 ? 'personnes' : 'personne'}</strong></div>
       <div class="toggle-row"><div class="toggle-copy"><strong>Ajouter des profils individuels</strong><span>Pour préciser les goûts ou besoins de chacun.</span></div><button class="switch ${p.individualProfiles ? 'on' : ''}" data-action="draft-individual" aria-label="Ajouter des profils"><span></span></button></div>
       ${p.individualProfiles ? `<div class="wizard-inline-field"><label class="field-label" for="profile-notes">Prénoms ou besoins particuliers</label><textarea id="profile-notes" class="textarea-field" data-draft-field="profileNotes" placeholder="Ex. Léa n’aime pas les champignons…">${escapeHtml(p.profileNotes || '')}</textarea></div>` : ''}`,
@@ -1022,7 +1116,7 @@ function renderProfile() {
         <div class="profile-fields"><div><span class="field-label">Adultes</span><div class="counter-control"><button class="counter-btn" data-action="profile-count" data-field="adults" data-delta="-1" ${p.adults <= 1 ? 'disabled' : ''}>${icon('minus')}</button><span class="counter-value">${p.adults}</span><button class="counter-btn" data-action="profile-count" data-field="adults" data-delta="1">${icon('plus')}</button></div></div>
           <div><span class="field-label">Enfants</span><div class="counter-control"><button class="counter-btn" data-action="profile-count" data-field="children" data-delta="-1" ${p.children <= 0 ? 'disabled' : ''}>${icon('minus')}</button><span class="counter-value">${p.children}</span><button class="counter-btn" data-action="profile-count" data-field="children" data-delta="1">${icon('plus')}</button></div></div>
           <div><label class="field-label" for="profile-name">Prénom</label><input id="profile-name" class="text-field" type="text" autocomplete="given-name" maxlength="32" data-profile-field="name" value="${escapeHtml(p.name || '')}" placeholder="Ex. Marie" /></div>
-          <div><label class="field-label" for="profile-child-ages">Âge des enfants</label><input id="profile-child-ages" class="text-field" data-profile-field="childAges" value="${escapeHtml(p.childAges || '')}" placeholder="Ex. 6 et 9 ans" /></div>
+          ${childAgeFieldsHtml(p, 'profile')}
           <div><label class="field-label" for="profile-budget">Budget hebdomadaire</label><div class="input-with-prefix"><span>€</span><input id="profile-budget" class="text-field" type="number" min="10" step="5" data-profile-field="budget" value="${escapeHtml(p.budget)}" /></div></div>
           <div><label class="field-label" for="profile-budget-mode">Souplesse du budget</label><select id="profile-budget-mode" class="select-field" data-profile-field="budgetMode"><option value="strict" ${p.budgetMode === 'strict' ? 'selected' : ''}>Strict — à respecter</option><option value="flexible" ${p.budgetMode === 'flexible' ? 'selected' : ''}>Flexible — indicatif</option></select></div>
         </div>
@@ -1065,7 +1159,11 @@ function renderRecipeModal() {
   const cost = recipeCostPerServing(item, state.profile);
   const ingredients = item.ingredients.map(part => {
     const food = INGREDIENTS[part.ingredient] || {};
-    return `<div class="recipe-ingredient"><span>${escapeHtml(food.name || part.ingredient)}</span><strong>${formatRecipeQty(part.qty * portions, food.unit || 'g')}</strong></div>`;
+    const amount = formatRecipeQty(part.qty * portions, food.unit || 'g', part.ingredient);
+    if (food.unit === 'piece') {
+      return `<div class="recipe-ingredient recipe-ingredient-piece"><span>${escapeHtml(amount)}</span></div>`;
+    }
+    return `<div class="recipe-ingredient"><span>${escapeHtml(food.name || part.ingredient)}</span><strong>${escapeHtml(amount)}</strong></div>`;
   }).join('');
   const equipment = item.equipment.length ? item.equipment.map(id => `<span class="equipment-tag">${icon(EQUIPMENT.find(x => x.id === id)?.icon || 'oven')} ${escapeHtml(EQUIPMENT_LABEL[id] || id)}</span>`).join('') : '<span class="equipment-tag">Aucun matériel particulier</span>';
   const isFavorite = state.favorites.includes(item.id);
@@ -1236,6 +1334,7 @@ function handleClick(event) {
     const field = el.dataset.field; const min = field === 'adults' ? 1 : 0;
     const previousSize = totalPeople(draftProfile);
     draftProfile[field] = Math.max(min, Number(draftProfile[field] || 0) + Number(el.dataset.delta));
+    if (field === 'children') draftProfile.childAges = normalizeChildAges(draftProfile.childAges, draftProfile.children);
     updateDefaultAttendanceCounts(previousSize, totalPeople(draftProfile), draftAttendance);
     render(); return;
   }
@@ -1330,6 +1429,14 @@ function syncVisibleProfileName(name) {
 }
 function handleChange(event) {
   const el = event.target;
+  if (el.matches('[data-child-age-scope]')) {
+    const profile = el.dataset.childAgeScope === 'draft' ? draftProfile : state.profile;
+    const index = Number(el.dataset.index);
+    profile.childAges = normalizeChildAges(profile.childAges, profile.children);
+    if (index >= 0 && index < profile.childAges.length) profile.childAges[index] = el.value;
+    if (profile === state.profile) saveState();
+    return;
+  }
   if (el.matches('[data-draft-field]')) {
     const field = el.dataset.draftField;
     setDraftField(field, el.value);
@@ -1378,6 +1485,20 @@ function applyGrocerySearch(input) {
   const empty = document.querySelector('.grocery-empty-search');
   if (empty) empty.classList.toggle('filter-hidden', !term || visible > 0);
 }
+function handleRecipeImageError(event) {
+  const image = event.target;
+  if (!image?.classList?.contains('recipe-photo')) return;
+
+  const fallback = image.dataset.fallbackSrc;
+  if (image.dataset.fallbackAttempted === 'true' || !fallback || image.getAttribute('src') === fallback) {
+    image.hidden = true;
+    return;
+  }
+
+  image.dataset.fallbackAttempted = 'true';
+  image.src = fallback;
+}
+
 function handleInput(event) {
   const el = event.target;
   if (el.matches('[data-profile-field="name"]')) {
@@ -1408,11 +1529,14 @@ function handleInput(event) {
 app.addEventListener('click', handleClick);
 app.addEventListener('change', handleChange);
 app.addEventListener('input', handleInput);
+app.addEventListener('error', handleRecipeImageError, true);
 
 state = loadState();
 draftProfile = clone(state.profile);
 draftAttendance = normalizeWeekAttendance(state.weekAttendance, state.profile);
 render();
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js').catch(error => console.warn('MealPilot: mode hors ligne indisponible.', error));
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(registration => registration.update())
+    .catch(error => console.warn('MealPilot: mode hors ligne indisponible.', error));
 }
