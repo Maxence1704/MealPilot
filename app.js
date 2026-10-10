@@ -96,6 +96,14 @@ const EQUIPMENT = [
 ];
 const STORES = ['Carrefour', 'E.Leclerc', 'Lidl', 'Aldi', 'Intermarché', 'Auchan', 'Monoprix', 'Amazon Fresh', 'Autre'];
 const STORE_FACTOR = { 'Lidl': .91, 'Aldi': .92, 'E.Leclerc': .96, 'Auchan': .98, 'Intermarché': .99, 'Carrefour': 1, 'Autre': 1, 'Monoprix': 1.12, 'Amazon Fresh': 1.15 };
+const STORE_PRICE_INDEX = {
+  'Fruits & légumes': { 'Carrefour': 1, 'E.Leclerc': .94, 'Lidl': .96, 'Aldi': .98, 'Intermarché': .99, 'Auchan': 1.01, 'Monoprix': 1.15, 'Amazon Fresh': 1.12, 'Autre': 1 },
+  'Viandes & poissons': { 'Carrefour': 1, 'E.Leclerc': .92, 'Lidl': .98, 'Aldi': .95, 'Intermarché': .96, 'Auchan': .97, 'Monoprix': 1.16, 'Amazon Fresh': 1.14, 'Autre': 1 },
+  'Produits laitiers & œufs': { 'Carrefour': 1, 'E.Leclerc': .95, 'Lidl': .97, 'Aldi': .93, 'Intermarché': .98, 'Auchan': .96, 'Monoprix': 1.14, 'Amazon Fresh': 1.12, 'Autre': 1 },
+  'Épicerie': { 'Carrefour': 1, 'E.Leclerc': .96, 'Lidl': .90, 'Aldi': .92, 'Intermarché': .99, 'Auchan': .97, 'Monoprix': 1.14, 'Amazon Fresh': 1.03, 'Autre': 1 },
+  'Boulangerie': { 'Carrefour': 1, 'E.Leclerc': .98, 'Lidl': .96, 'Aldi': .97, 'Intermarché': 1.01, 'Auchan': .99, 'Monoprix': 1.16, 'Amazon Fresh': 1.12, 'Autre': 1 },
+  'Surgelés': { 'Carrefour': 1, 'E.Leclerc': .97, 'Lidl': .90, 'Aldi': .92, 'Intermarché': .98, 'Auchan': .94, 'Monoprix': 1.14, 'Amazon Fresh': 1.03, 'Autre': 1 },
+};
 const STORE_SHORT = { 'E.Leclerc': 'Leclerc', 'Intermarché': 'Intermarché', 'Amazon Fresh': 'Amazon Fresh', 'Carrefour': 'Carrefour', 'Lidl': 'Lidl', 'Aldi': 'Aldi', 'Auchan': 'Auchan', 'Monoprix': 'Monoprix', 'Autre': 'Autre' };
 const CATEGORY_ORDER = ['Fruits & légumes', 'Viandes & poissons', 'Produits laitiers & œufs', 'Épicerie', 'Boulangerie', 'Surgelés'];
 const CATEGORY_ICONS = { 'Fruits & légumes': 'leaf', 'Viandes & poissons': 'fish', 'Produits laitiers & œufs': 'dairy', 'Épicerie': 'basket', 'Boulangerie': 'bread', 'Surgelés': 'snow' };
@@ -197,7 +205,42 @@ const RECIPES = [
   recipe('pommes-terre-farcies', 'dinner', 'Pommes de terre farcies au fromage frais', 'Des pommes de terre fondantes, accompagnées de salade.', 35, 'Facile', 17, 510, ['balanced', 'vegetarian', 'lowCost'], ['oven'], [['potato', 190], ['cottageCheese', 50], ['cheese', 8], ['salad', 45], ['herbs', 2], ['oliveOil', 2]], ['Préchauffe le four à 200 °C.', 'Pique les pommes de terre et fais-les cuire 30 minutes.', 'Ouvre-les puis garnis de fromage frais et d’herbes.', 'Sers avec la salade assaisonnée.'], ['#eee6d7', '#d7ad68', '#7b9a74', '#f0d18b']),
   recipe('risotto-champignons', 'dinner', 'Risotto aux champignons', 'Un risotto crémeux, tout simple avec des champignons frais.', 32, 'Intermédiaire', 16, 545, ['balanced', 'vegetarian', 'vegetables'], ['hob', 'pot'], [['rice', 75], ['mushroom', 90], ['onion', 25], ['cream', 18], ['cheese', 12], ['stock', .3], ['oliveOil', 3]], ['Fais revenir l’oignon et les champignons dans une casserole.', 'Ajoute le riz et mélange une minute.', 'Verse le bouillon petit à petit, en remuant, pendant 18 minutes.', 'Ajoute la crème et l’emmental avant de servir.'], ['#eee6d9', '#c68b5f', '#829970', '#e5c67f']),
   recipe('poelee-legumes-oeufs', 'dinner', 'Poêlée de légumes & œufs', 'Une poêlée colorée et économique, prête en moins de 25 minutes.', 23, 'Très facile', 19, 440, ['balanced', 'protein', 'vegetarian', 'lowCost', 'quick', 'vegetables'], ['hob', 'pan'], [['eggs', 1.5], ['potato', 100], ['carrot', 50], ['spinach', 20], ['onion', 20], ['oliveOil', 3]], ['Coupe les pommes de terre et les carottes en petits dés.', 'Fais-les revenir avec l’oignon dans une poêle couverte.', 'Ajoute les épinards puis les œufs battus.', 'Cuis à feu doux jusqu’à ce que les œufs soient pris.'], ['#eee6d7', '#d0a15f', '#80a075', '#e8c977']),
-];
+ ];
+
+const RECIPE_IMAGES = {
+  'porridge-banane': './images/breakfast-porridge.jpg',
+  'yaourt-pomme': './images/breakfast-yogurt.jpg',
+  'tartine-oeuf': './images/breakfast-eggs.jpg',
+  'overnight-oats': './images/breakfast-yogurt.jpg',
+  'smoothie-banane': './images/breakfast-smoothie.jpg',
+  'pancakes-maison': './images/breakfast-pancakes.jpg',
+  'tartine-frais': './images/breakfast-eggs.jpg',
+  'porridge-vegetal': './images/breakfast-porridge.jpg',
+  'bol-soja-fruits': './images/breakfast-yogurt.jpg',
+  'bol-yaourt-fruits': './images/breakfast-yogurt.jpg',
+  'poulet-riz': './images/lunch-chicken-rice.jpg',
+  'curry-lentilles': './images/lunch-lentil-curry.jpg',
+  'pates-thon': './images/lunch-tuna-pasta.jpg',
+  'couscous-pois-chiches': './images/lunch-chickpea-salad.jpg',
+  'chili-dinde': './images/lunch-chili.jpg',
+  'tofu-wok': './images/lunch-tofu-wok.jpg',
+  'omelette-pommes-terre': './images/lunch-omelette-potato.jpg',
+  'salade-thon-pois': './images/lunch-chickpea-salad.jpg',
+  'salade-pois-chiches': './images/lunch-chickpea-salad.jpg',
+  'wrap-poulet': './images/lunch-chicken-wrap.jpg',
+  'shakshuka': './images/dinner-shakshuka.jpg',
+  'poulet-four': './images/dinner-roast-chicken.jpg',
+  'saumon-four': './images/dinner-salmon-zucchini.jpg',
+  'pates-courgette': './images/dinner-zucchini-pasta.jpg',
+  'soupe-lentilles': './images/dinner-lentil-soup.jpg',
+  'salade-soir': './images/lunch-chickpea-salad.jpg',
+  'chili-vegetarien': './images/dinner-vegetarian-chili.jpg',
+  'salade-quinoa': './images/lunch-chickpea-salad.jpg',
+  'pommes-terre-farcies': './images/lunch-omelette-potato.jpg',
+  'risotto-champignons': './images/dinner-mushroom-risotto.jpg',
+  'poelee-legumes-oeufs': './images/lunch-omelette-potato.jpg',
+};
+RECIPES.forEach(item => { if (RECIPE_IMAGES[item.id]) item.imageUrl = RECIPE_IMAGES[item.id]; });
 
 const EQUIPMENT_OPTIONS = EQUIPMENT;
 const PANTRY_OPTIONS = [
@@ -218,7 +261,7 @@ function defaultProfile() {
     equipment: ['oven', 'hob', 'microwave', 'pan', 'pot'], ignoreEquipment: false,
     goals: ['balanced', 'protein'], otherGoal: '',
     likes: '', dislikes: '', allergies: '', excluded: '', diet: 'omnivore', cookingTime: 30, skill: 'beginner',
-    stores: ['Carrefour'], grityIntegrationChoice: null,
+    stores: ['Carrefour'],
   };
 }
 function totalPeople(profile) { return Math.max(1, Number(profile.adults || 0) + Number(profile.children || 0)); }
@@ -315,14 +358,25 @@ function priceOfIngredient(id) {
 function ingredientUnit(id) { return (INGREDIENTS[id] || {}).unit || PANTRY_UNIT[id] || 'g'; }
 function ingredientName(id) { return (INGREDIENTS[id] || {}).name || PANTRY_NAMES[id] || id; }
 function ingredientCategory(id) { return (INGREDIENTS[id] || {}).category || 'Épicerie'; }
-function cheapestStore(stores = []) {
-  const allowed = stores.length ? stores : ['Carrefour'];
-  return allowed.slice().sort((a, b) => (STORE_FACTOR[a] ?? 1) - (STORE_FACTOR[b] ?? 1))[0] || 'Carrefour';
+function storePriceIndex(store, category) {
+  return STORE_PRICE_INDEX[category]?.[store] ?? STORE_FACTOR[store] ?? 1;
 }
-function storeFactor(stores) { return STORE_FACTOR[cheapestStore(stores)] ?? 1; }
+function selectedStores(stores = []) {
+  const chosen = Array.isArray(stores) ? stores.filter(store => STORES.includes(store)) : [];
+  return chosen.length ? chosen : ['Carrefour'];
+}
+function cheapestStoreForIngredient(ingredientId, stores = []) {
+  const category = ingredientCategory(ingredientId);
+  return selectedStores(stores).reduce((best, store) => storePriceIndex(store, category) < storePriceIndex(best, category) ? store : best);
+}
+function ingredientPriceAtStore(ingredientId, store) {
+  return priceOfIngredient(ingredientId) * storePriceIndex(store, ingredientCategory(ingredientId));
+}
 function recipeCostPerServing(item, profile = state.profile) {
-  const factor = storeFactor(profile.stores);
-  return item.ingredients.reduce((sum, ingredient) => sum + ingredient.qty * priceOfIngredient(ingredient.ingredient) * factor, 0);
+  return item.ingredients.reduce((sum, part) => {
+    const store = cheapestStoreForIngredient(part.ingredient, profile.stores);
+    return sum + part.qty * ingredientPriceAtStore(part.ingredient, store);
+  }, 0);
 }
 function recipeIngredientNameSearch(item) {
   return `${item.name} ${item.ingredients.map(x => ingredientName(x.ingredient)).join(' ')}`;
@@ -432,13 +486,15 @@ function calculateBasket(plan = state.plan, profile = state.profile, pantry = st
     const stock = Number(pantry?.[entry.id] || 0);
     const used = Math.min(stock, entry.total);
     pantryUsed += used > 0 ? 1 : 0;
-    pantrySavings += used * priceOfIngredient(entry.id) * storeFactor(profile.stores);
+    const store = cheapestStoreForIngredient(entry.id, profile.stores);
+    const unitPrice = ingredientPriceAtStore(entry.id, store);
+    pantrySavings += used * unitPrice;
     const needed = Math.max(0, entry.total - stock);
     if (needed <= .001) continue;
     const purchaseQty = roundPurchaseQty(needed, entry.unit);
-    const price = round2(purchaseQty * priceOfIngredient(entry.id) * storeFactor(profile.stores));
+    const price = round2(purchaseQty * unitPrice);
     total += price;
-    items.push({ ...entry, needed, purchaseQty, price, store: cheapestStore(profile.stores), shared: entry.recipes.size > 1, recipesCount: entry.recipes.size });
+    items.push({ ...entry, needed, purchaseQty, unitPrice, price, store, shared: entry.recipes.size > 1, recipesCount: entry.recipes.size });
   }
   items.sort((a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) || a.name.localeCompare(b.name, 'fr'));
   const sharedIngredients = Object.values(requirements).filter(item => item.recipes.size > 1).length;
@@ -484,10 +540,15 @@ function optimizePlanToBudget(plan, profile) {
 function recipeArt(itemOrId) {
   const item = typeof itemOrId === 'string' ? getRecipe(itemOrId) : itemOrId;
   let imageUrl = '';
-  try {
-    const parsed = new URL(item.imageUrl);
-    if (parsed.protocol === 'https:') imageUrl = parsed.href;
-  } catch (_) {}
+  const candidateImage = String(item.imageUrl || '');
+  if (/^\.\/images\/[a-z0-9._-]+\.jpe?g$/i.test(candidateImage)) {
+    imageUrl = candidateImage;
+  } else {
+    try {
+      const parsed = new URL(candidateImage);
+      if (parsed.protocol === 'https:') imageUrl = parsed.href;
+    } catch (_) {}
+  }
   if (imageUrl) return `<img class="recipe-photo" src="${escapeHtml(imageUrl)}" alt="Photo de ${escapeHtml(item.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   const palette = item.palette || ['#efe6d7', '#d6a15e', '#829b75', '#e6c77a'];
   let seed = Array.from(item.id || 'food').reduce((a, c) => (a * 33 + c.charCodeAt(0)) >>> 0, 13);
@@ -542,6 +603,7 @@ function loadState() {
     const saved = JSON.parse(stored);
     const profile = { ...defaultProfile(), ...(saved.profile || {}) };
     if (profile.name === 'Camille') profile.name = 'Marie';
+    delete profile.grityIntegrationChoice;
     const weekAttendance = normalizeWeekAttendance(saved.weekAttendance, profile);
     state = {
       profile,
@@ -680,7 +742,7 @@ function updateProfileField(key, value, { toast = true } = {}) {
   regenerateForProfileChange(key, toast ? message : '');
 }
 
-const ONBOARDING_STEPS = ['Le foyer', 'Présences', 'Le budget', 'Matériel', 'Objectifs', 'Préférences', 'Grity', 'Magasins'];
+const ONBOARDING_STEPS = ['Le foyer', 'Présences', 'Le budget', 'Matériel', 'Objectifs', 'Préférences', 'Magasins'];
 function onboardingTop() {
   return `<header class="onboarding-top">
     <a class="brand" href="#" aria-label="MealPilot"> <span class="brand-mark">${icon('leaf')}</span><span class="brand-name">Meal<span>Pilot</span></span></a>
@@ -754,24 +816,6 @@ function wizardStepContent() {
       <div class="field-full"><label class="field-label" for="skill">Niveau en cuisine</label><select class="select-field" id="skill" data-draft-field="skill">${skillOptions(p.skill)}</select></div>
       </div>`,
   };
-  if (onboardingStep === 6) {
-    const grityChoice = p.grityIntegrationChoice;
-    return {
-      title: 'Souhaites-tu connecter Grity ?',
-      description: 'MealPilot pourrait s’inspirer des recettes Grity et afficher leurs visuels, uniquement si Grity autorise cette intégration.',
-      html: `<div class="grity-choice-list">
-        <button class="grity-choice ${grityChoice === 'yes' ? 'selected' : ''}" data-action="draft-grity-choice" data-value="yes" aria-pressed="${grityChoice === 'yes'}">
-          <span class="grity-choice-icon">${icon('sparkles')}</span><span class="grity-choice-copy"><strong>Oui, je souhaite connecter Grity</strong><small>Pour m’inspirer de ses recettes et visuels, si leur usage est autorisé.</small></span><span class="grity-choice-check">${grityChoice === 'yes' ? icon('check') : ''}</span>
-        </button>
-        <button class="grity-choice ${grityChoice === 'no' ? 'selected' : ''}" data-action="draft-grity-choice" data-value="no" aria-pressed="${grityChoice === 'no'}">
-          <span class="grity-choice-icon muted">${icon('arrowRight')}</span><span class="grity-choice-copy"><strong>Non, continuer sans Grity</strong><small>MealPilot utilisera uniquement ses recettes intégrées.</small></span><span class="grity-choice-check">${grityChoice === 'no' ? icon('check') : ''}</span>
-        </button>
-      </div>
-      <div class="grity-security-note"><span class="grity-security-icon">${icon('shield')}</span><div><strong>Transparence et sécurité</strong><p>Cette réponse enregistre seulement ton souhait : le prototype ne se connecte pas encore à Grity et n’importe aucune donnée. Une vraie synchronisation exige un accès officiel (API, OAuth ou export) ainsi que l’autorisation d’utiliser les recettes et leurs images. MealPilot ne te demandera jamais ton mot de passe Grity.</p></div></div>
-      ${grityChoice === 'yes' ? '<p class="grity-choice-feedback" role="status">Ton souhait sera mémorisé lorsque tu valideras le quiz. L’import ne démarrera qu’après une intégration officielle.</p>' : ''}
-      <a class="grity-support-link" href="mailto:support@grity.com?subject=Demande%20d%E2%80%99int%C3%A9gration%20officielle%20Grity%20et%20MealPilot&body=Bonjour%2C%0A%0AJe%20souhaite%20savoir%20si%20Grity%20propose%20une%20API%2C%20une%20autorisation%20OAuth%20ou%20un%20export%20officiel%20permettant%20%C3%A0%20MealPilot%20d%E2%80%99importer%20des%20recettes%20et%20leurs%20images%20avec%20votre%20accord.%0A%0AMerci.">Demander une intégration officielle à Grity ${icon('arrowRight')}</a>`,
-    };
-  }
   const visibleStores = STORES.filter(item => normalizeText(item).includes(normalizeText(storeSearch)));
   return {
     title: 'Où fais-tu tes courses ?',
@@ -834,7 +878,7 @@ function renderSidebar() {
     <nav class="nav-list" aria-label="Navigation principale">${navItems().map(item => `<button class="nav-link ${state.page === item.id ? 'active' : ''}" data-nav="${item.id}" ${state.page === item.id ? 'aria-current="page"' : ''}>${icon(item.icon)}<span>${item.label}</span></button>`).join('')}</nav>
     <div class="sidebar-spacer"></div>
     <div class="sidebar-plan"><div class="sidebar-plan-top"><span>SEMAINE EN COURS</span><span class="plan-dot"></span></div><p>${money(budget)} estimés sur ${money(Number(state.profile.budget) || 0)}</p><button data-nav="groceries">Voir le panier ${icon('arrowRight', 'icon-sm')}</button></div>
-    <div class="sidebar-user" data-nav="profile"><span class="avatar">${initials(state.profile.name)}</span><span class="sidebar-user-name"><strong>${escapeHtml(state.profile.name || 'Mon profil')}</strong><span>${totalPeople(state.profile)} personnes · ${escapeHtml(cheapestStore(state.profile.stores))}</span></span>${icon('chevronRight', 'icon-sm')}</div>
+    <div class="sidebar-user" data-nav="profile"><span class="avatar">${initials(state.profile.name)}</span><span class="sidebar-user-name"><strong>${escapeHtml(state.profile.name || 'Mon profil')}</strong><span>${totalPeople(state.profile)} personnes · ${(state.profile.stores || []).length || 1} magasins</span></span>${icon('chevronRight', 'icon-sm')}</div>
   </aside>`;
 }
 function initials(name = '') { return (String(name).trim().split(/\s+/).slice(0, 2).map(x => x[0] || '').join('') || 'MP').toUpperCase(); }
@@ -886,7 +930,7 @@ function renderHome() {
   const todayLabel = `${today?.label || 'Aujourd’hui'} · ${today?.shortDate || ''}`;
   const weekCards = state.plan.map((day, index) => `<div class="mini-day ${index === dayIndex ? 'today' : ''}"><div class="mini-day-heading" data-nav="week"><strong>${escapeHtml(day.label)}</strong><span>${escapeHtml(day.shortDate)}</span></div>${day.meals.map((meal, mealIndex) => `<button class="mini-meal-link" data-action="view-meal" data-day="${index}" data-meal="${mealIndex}"><span class="mini-bullet"></span><span>${escapeHtml(getRecipe(meal.recipeId).name)}</span></button>`).join('')}</div>`).join('');
   const groceriesAction = `<button class="button button-secondary" data-nav="groceries">${icon('cart')}Ma liste de courses ${icon('arrowRight', 'icon-sm')}</button>`;
-  return `<div class="greeting-row"><div class="greeting-copy"><div class="eyebrow">${icon('sparkles')} TA SEMAINE, EN MIEUX</div><h1>Bonjour ${escapeHtml(state.profile.name || 'Camille')}.</h1><p>Tout est prévu. Tu peux te concentrer sur le reste.</p></div><div class="heading-actions">${groceriesAction}</div></div>
+  return `<div class="greeting-row"><div class="greeting-copy"><div class="eyebrow">${icon('sparkles')} TA SEMAINE, EN MIEUX</div><h1>Bonjour ${escapeHtml(state.profile.name || 'Marie')}.</h1><p>Tout est prévu. Tu peux te concentrer sur le reste.</p></div><div class="heading-actions">${groceriesAction}</div></div>
     <section class="stats-grid" aria-label="Résumé de la semaine">
       <article class="card stat-card budget-card"><div class="stat-label">${icon('wallet', 'icon-sm')} Budget prévu</div><div class="stat-value-row"><strong class="stat-value">${money(stats.total)}</strong><span class="stat-of">sur ${money(budget)}</span></div><div class="stat-progress"><div class="progress-track"><div class="progress-fill ${remaining < 0 ? 'over' : ''}" style="width:${percent}%"></div></div><span>${remaining >= 0 ? `${money(remaining)} disponibles` : `${money(Math.abs(remaining))} au-dessus`}</span></div></article>
       <article class="card stat-card stat-card-light"><div class="stat-main"><div><div class="stat-label">${icon('calendar', 'icon-sm')} Repas planifiés</div><div class="stat-value">${plannedMeals}</div></div><span class="stat-icon">${icon('fork')}</span></div><div class="stat-foot"><span>${state.profile.includeBreakfast ? 'Petits-déjeuners compris' : 'Présences choisies par repas'}</span><span class="stat-foot-badge">7 jours</span></div></article>
@@ -909,33 +953,45 @@ function renderWeek() {
     <section class="card week-summary"><div class="week-summary-left"><span class="week-summary-icon">${icon('calendar')}</span><span class="week-summary-copy"><strong>${escapeHtml(weekRangeLabel())}</strong><span>${stats.mealCount} repas prévus · effectifs ajustés service par service</span></span></div><div class="week-summary-right"><div class="summary-metric"><span>Budget estimé</span><strong>${money(stats.total)}</strong></div><div class="summary-metric"><span>Budget semaine</span><strong>${money(budget)}</strong></div><div class="summary-metric"><span>Disponible</span><strong>${money(budget - stats.total)}</strong></div></div></section>
     <section class="week-calendar">${state.plan.map((day, dayIndex) => `<article class="day-column ${dayIndex === todayIndex() ? 'today' : ''}"><div class="day-column-heading"><div><strong>${escapeHtml(day.label)}</strong><span>${escapeHtml(day.shortDate)}</span></div>${dayIndex === todayIndex() ? '<span class="today-tag">Aujourd’hui</span>' : ''}</div><div class="meal-list">${day.meals.length ? day.meals.map((meal, mealIndex) => mealButton(dayIndex, mealIndex, meal)).join('') : '<div class="no-meals-note">Aucun repas prévu</div>'}</div></article>`).join('')}</section>`;
 }
-function getStoreForBasketItem(item) { return STORE_SHORT[item.store] || item.store; }
 function renderGroceries() {
   const stats = calculateBasket();
   const budget = Number(state.profile.budget) || 0;
   const remaining = budget - stats.total;
   const over = remaining < -.009;
   const percent = budget > 0 ? Math.min(100, stats.total / budget * 100) : 0;
-  const grouped = new Map();
+  const byStore = new Map();
   for (const item of stats.items) {
-    if (!grouped.has(item.category)) grouped.set(item.category, []);
-    grouped.get(item.category).push(item);
+    if (!byStore.has(item.store)) byStore.set(item.store, []);
+    byStore.get(item.store).push(item);
   }
-  const categories = CATEGORY_ORDER.filter(category => grouped.has(category));
-  const itemsHtml = categories.map(category => {
-    const list = grouped.get(category);
-    const collapsed = (state.collapsedCategories || []).includes(category);
-    return `<section class="grocery-category ${collapsed ? 'collapsed' : ''}" data-category="${escapeHtml(category)}"><button class="category-head" data-action="toggle-category" data-category="${escapeHtml(category)}"><span class="category-icon">${icon(CATEGORY_ICONS[category] || 'basket')}</span><span class="category-title">${escapeHtml(category)}</span><span class="category-count">${list.length} ${list.length > 1 ? 'articles' : 'article'}</span>${icon('chevronDown', 'icon-sm category-chevron')}</button><div class="category-items">${list.map(item => {
-      const checked = !!state.checkedItems[item.id];
-      const detail = `${formatShoppingQty(item.purchaseQty, item.unit)}${item.shared ? ' · utilisé dans plusieurs recettes' : ''}`;
-      return `<div class="grocery-item ${checked ? 'is-checked' : ''}" data-item-id="${item.id}" data-search="${escapeHtml(normalizeText(`${item.name} ${category} ${item.store}`))}"><button class="check-square" data-action="toggle-grocery" data-id="${item.id}" aria-label="${checked ? 'Décocher' : 'Cocher'} ${escapeHtml(item.name)}">${icon('check')}</button><div class="grocery-item-name">${escapeHtml(item.name)}<span class="grocery-item-detail">${escapeHtml(detail)}${Number(state.pantry[item.id] || 0) > 0 ? ` · ${formatShoppingQty(Math.min(Number(state.pantry[item.id]), item.total), item.unit)} déjà chez toi` : ''}</span></div><span class="grocery-item-store"><i class="store-dot"></i>${escapeHtml(getStoreForBasketItem(item))}</span><span class="grocery-price">~${money(item.price)}</span></div>`;
-    }).join('')}</div></section>`;
+  const storeOrder = [...selectedStores(state.profile.stores), ...byStore.keys()].filter((store, index, list) => list.indexOf(store) === index && byStore.has(store));
+  const itemsHtml = storeOrder.map(store => {
+    const storeItems = byStore.get(store) || [];
+    const subtotal = round2(storeItems.reduce((sum, item) => sum + item.price, 0));
+    const byCategory = new Map();
+    for (const item of storeItems) {
+      if (!byCategory.has(item.category)) byCategory.set(item.category, []);
+      byCategory.get(item.category).push(item);
+    }
+    const categories = CATEGORY_ORDER.filter(category => byCategory.has(category));
+    const categoryHtml = categories.map(category => {
+      const list = byCategory.get(category);
+      const categoryKey = `${store}::${category}`;
+      const collapsed = (state.collapsedCategories || []).includes(categoryKey);
+      return `<section class="grocery-category ${collapsed ? 'collapsed' : ''}" data-category="${escapeHtml(categoryKey)}"><button class="category-head" data-action="toggle-category" data-category="${escapeHtml(categoryKey)}"><span class="category-icon">${icon(CATEGORY_ICONS[category] || 'basket')}</span><span class="category-title">${escapeHtml(category)}</span><span class="category-count">${list.length} ${list.length > 1 ? 'articles' : 'article'}</span>${icon('chevronDown', 'icon-sm category-chevron')}</button><div class="category-items">${list.map(item => {
+        const checked = !!state.checkedItems[item.id];
+        const detail = `${formatShoppingQty(item.purchaseQty, item.unit)}${item.shared ? ' · utilisé dans plusieurs recettes' : ''}`;
+        return `<div class="grocery-item ${checked ? 'is-checked' : ''}" data-item-id="${item.id}" data-search="${escapeHtml(normalizeText(`${item.name} ${category} ${item.store}`))}"><button class="check-square" data-action="toggle-grocery" data-id="${item.id}" aria-label="${checked ? 'Décocher' : 'Cocher'} ${escapeHtml(item.name)}">${icon('check')}</button><div class="grocery-item-name">${escapeHtml(item.name)}<span class="grocery-item-detail">${escapeHtml(detail)}${Number(state.pantry[item.id] || 0) > 0 ? ` · ${formatShoppingQty(Math.min(Number(state.pantry[item.id]), item.total), item.unit)} déjà chez toi` : ''}</span></div><span class="grocery-price">~${money(item.price)}</span></div>`;
+      }).join('')}</div></section>`;
+    }).join('');
+    return `<section class="store-shopping-group" data-store-group="${escapeHtml(store)}"><header class="store-shopping-head"><div class="store-shopping-head-copy"><span class="store-shopping-icon">${icon('basket')}</span><div><h2>À acheter chez ${escapeHtml(STORE_SHORT[store] || store)}</h2><p>${storeItems.length} ${storeItems.length > 1 ? 'produits' : 'produit'} au prix estimé le plus bas parmi tes choix</p></div></div><strong>${money(subtotal)}</strong></header>${categoryHtml}</section>`;
   }).join('');
   const actions = `<button class="button button-secondary" data-action="open-pantry">${icon('fridge')}Ce que j’ai déjà</button>`;
   const stockNames = Object.keys(state.pantry).filter(id => Number(state.pantry[id]) > 0).map(ingredientName);
   const pantryNames = stockNames.slice(0, 4).join(', ');
-  return `${pageHeading('TON PANIER', 'Ma liste de courses', 'Les quantités sont calculées à partir du planning et des aliments déjà présents chez toi.', actions)}
+  return `${pageHeading('TON PANIER', 'Ma liste de courses', 'Les articles sont répartis entre tes magasins sélectionnés selon le prix estimé le plus bas, puis classés par rayon.', actions)}
     <div class="grocery-layout"><section class="card grocery-main-card"><div class="grocery-toolbar"><div class="search-box">${icon('search')}<input class="search-input" data-search="groceries" placeholder="Rechercher un produit…" aria-label="Rechercher dans la liste" /></div><button class="button button-quiet button-small" data-action="uncheck-all">Tout décocher</button></div>
+      <div class="store-price-note">${icon('info')} Prix simulés par magasin et par rayon : ce ne sont pas des prix en temps réel.</div>
       ${itemsHtml || (stats.mealCount === 0 ? `<div class="empty-state"><span class="empty-state-icon">${icon('calendar')}</span><h2>Aucun repas planifié</h2><p>Ton agenda ne contient aucun déjeuner ou dîner à la maison cette semaine.</p><button class="button button-secondary" data-action="open-weekly-quiz">Compléter l’agenda</button></div>` : `<div class="empty-state"><span class="empty-state-icon">${icon('checkCircle')}</span><h2>Tout est déjà à la maison</h2><p>Le placard couvre les ingrédients nécessaires pour cette semaine.</p><button class="button button-secondary" data-action="open-pantry">Gérer mon inventaire</button></div>`)}
       <div class="grocery-empty-search filter-hidden">Aucun produit ne correspond à ta recherche.</div>
     </section>
@@ -965,7 +1021,7 @@ function renderProfile() {
       <section class="card profile-section"><div class="profile-section-head"><div><h2>Mon foyer & mon budget</h2><p>Les portions et estimations s’ajustent à chaque modification.</p></div><span class="section-icon">${icon('users')}</span></div>
         <div class="profile-fields"><div><span class="field-label">Adultes</span><div class="counter-control"><button class="counter-btn" data-action="profile-count" data-field="adults" data-delta="-1" ${p.adults <= 1 ? 'disabled' : ''}>${icon('minus')}</button><span class="counter-value">${p.adults}</span><button class="counter-btn" data-action="profile-count" data-field="adults" data-delta="1">${icon('plus')}</button></div></div>
           <div><span class="field-label">Enfants</span><div class="counter-control"><button class="counter-btn" data-action="profile-count" data-field="children" data-delta="-1" ${p.children <= 0 ? 'disabled' : ''}>${icon('minus')}</button><span class="counter-value">${p.children}</span><button class="counter-btn" data-action="profile-count" data-field="children" data-delta="1">${icon('plus')}</button></div></div>
-          <div><label class="field-label" for="profile-name">Prénom</label><input id="profile-name" class="text-field" data-profile-field="name" value="${escapeHtml(p.name || '')}" /></div>
+          <div><label class="field-label" for="profile-name">Prénom</label><input id="profile-name" class="text-field" type="text" autocomplete="given-name" maxlength="32" data-profile-field="name" value="${escapeHtml(p.name || '')}" placeholder="Ex. Marie" /></div>
           <div><label class="field-label" for="profile-child-ages">Âge des enfants</label><input id="profile-child-ages" class="text-field" data-profile-field="childAges" value="${escapeHtml(p.childAges || '')}" placeholder="Ex. 6 et 9 ans" /></div>
           <div><label class="field-label" for="profile-budget">Budget hebdomadaire</label><div class="input-with-prefix"><span>€</span><input id="profile-budget" class="text-field" type="number" min="10" step="5" data-profile-field="budget" value="${escapeHtml(p.budget)}" /></div></div>
           <div><label class="field-label" for="profile-budget-mode">Souplesse du budget</label><select id="profile-budget-mode" class="select-field" data-profile-field="budgetMode"><option value="strict" ${p.budgetMode === 'strict' ? 'selected' : ''}>Strict — à respecter</option><option value="flexible" ${p.budgetMode === 'flexible' ? 'selected' : ''}>Flexible — indicatif</option></select></div>
@@ -984,7 +1040,7 @@ function renderProfile() {
         <div><label class="field-label" for="profile-excluded">Aliments interdits</label><input id="profile-excluded" class="text-field" data-profile-field="excluded" value="${escapeHtml(p.excluded || '')}" placeholder="Ex. poisson" /></div>
         <div><label class="field-label" for="profile-profile-notes">Notes du foyer</label><input id="profile-profile-notes" class="text-field" data-profile-field="profileNotes" value="${escapeHtml(p.profileNotes || '')}" placeholder="Une précision utile…" /></div>
       </div></section>
-      <section class="card profile-section"><div class="profile-section-head"><div><h2>Mes magasins</h2><p>Le meilleur prix simulé parmi les enseignes choisies est affiché.</p></div><span class="section-icon">${icon('basket')}</span></div><div class="search-box" style="margin-bottom:11px">${icon('search')}<input class="search-input store-search" data-search="profile-stores" value="${escapeHtml(profileStoreSearch)}" placeholder="Rechercher une enseigne…" /></div><div class="store-grid">${visibleStores.map(store => `<button class="store-option ${(p.stores || []).includes(store) ? 'selected' : ''}" data-action="profile-store" data-id="${escapeHtml(store)}"><span class="store-checkbox">${icon('check')}</span><span>${escapeHtml(store)}</span></button>`).join('')}</div></section>
+      <section class="card profile-section"><div class="profile-section-head"><div><h2>Mes magasins</h2><p>La liste répartit les articles vers l’enseigne au prix estimé le plus bas parmi tes choix.</p></div><span class="section-icon">${icon('basket')}</span></div><div class="search-box" style="margin-bottom:11px">${icon('search')}<input class="search-input store-search" data-search="profile-stores" value="${escapeHtml(profileStoreSearch)}" placeholder="Rechercher une enseigne…" /></div><div class="store-grid">${visibleStores.map(store => `<button class="store-option ${(p.stores || []).includes(store) ? 'selected' : ''}" data-action="profile-store" data-id="${escapeHtml(store)}"><span class="store-checkbox">${icon('check')}</span><span>${escapeHtml(store)}</span></button>`).join('')}</div></section>
       <section class="card profile-section"><div class="profile-section-head"><div><h2>Ce que j’ai déjà</h2><p>Les ingrédients du placard sont soustraits aux courses.</p></div><span class="section-icon">${icon('fridge')}</span></div><p style="margin:0 0 12px;color:#879087;font-size:10px">${Object.keys(state.pantry).filter(id => state.pantry[id] > 0).length} produits enregistrés · environ ${money(stats.pantrySavings)} d’achats évités cette semaine.</p><button class="button button-secondary button-small" data-action="open-pantry">${icon('fridge')}Gérer mon inventaire</button></section>
     </div><aside class="profile-sidebar"><section class="card profile-summary"><h3>Ton profil en bref</h3><p>MealPilot construit une semaine adaptée à ces paramètres.</p><div class="profile-summary-stat"><span>Personnes</span><strong>${totalPeople(p)}</strong></div><div class="profile-summary-stat"><span>Budget</span><strong>${money(Number(p.budget) || 0)} / sem.</strong></div><div class="profile-summary-stat"><span>Repas planifiés</span><strong>${stats.mealCount}</strong></div><div class="profile-summary-stat"><span>Estimation actuelle</span><strong>${money(stats.total)}</strong></div><button class="button button-primary button-small" data-action="generate-week">${icon('sparkles')}Recalculer ma semaine</button></section><div class="data-note"><strong>Prix indicatifs.</strong> Les prix et enseignes sont simulés dans ce prototype. Tes préférences sont enregistrées uniquement sur cet appareil.</div></aside></div>`;
 }
@@ -1204,7 +1260,6 @@ function handleClick(event) {
   if (action === 'draft-ignore') { draftProfile.ignoreEquipment = !draftProfile.ignoreEquipment; render(); return; }
   if (action === 'draft-goal') { draftProfile.goals = toggleArray(draftProfile.goals, el.dataset.id); render(); return; }
   if (action === 'draft-breakfast') { draftProfile.includeBreakfast = !draftProfile.includeBreakfast; render(); return; }
-  if (action === 'draft-grity-choice') { draftProfile.grityIntegrationChoice = el.dataset.value === 'yes' ? 'yes' : 'no'; render(); return; }
   if (action === 'draft-store') { draftProfile.stores = toggleArray(draftProfile.stores, el.dataset.id); render(); return; }
   if (action === 'generate-week') { startGeneration(); return; }
   if (action === 'view-meal') { openRecipeFromButton(el); return; }
@@ -1265,6 +1320,14 @@ function handleClick(event) {
   if (action === 'profile-ignore-equipment') { updateProfileField('ignoreEquipment', !state.profile.ignoreEquipment); return; }
   if (action === 'profile-store') { updateProfileField('stores', toggleArray(state.profile.stores, el.dataset.id)); return; }
 }
+function syncVisibleProfileName(name) {
+  const cleanName = String(name || '').trim() || 'Marie';
+  const greeting = document.querySelector('.greeting-copy h1');
+  if (greeting) greeting.textContent = `Bonjour ${cleanName}.`;
+  const sidebarName = document.querySelector('.sidebar-user-name strong');
+  if (sidebarName) sidebarName.textContent = cleanName;
+  document.querySelectorAll('.avatar').forEach(node => { node.textContent = initials(cleanName); });
+}
 function handleChange(event) {
   const el = event.target;
   if (el.matches('[data-draft-field]')) {
@@ -1276,6 +1339,14 @@ function handleChange(event) {
   if (el.matches('[data-profile-field]')) {
     const field = el.dataset.profileField;
     let value = el.value;
+    if (field === 'name') {
+      value = String(value || '').trim().slice(0, 32) || 'Marie';
+      state.profile.name = value;
+      el.value = value;
+      saveState();
+      syncVisibleProfileName(value);
+      return;
+    }
     if (['adults', 'children', 'budget'].includes(field)) value = Number(value) || (field === 'children' ? 0 : 10);
     if (field === 'cookingTime') value = value === 'any' ? 'any' : Number(value);
     updateProfileField(field, value);
@@ -1300,11 +1371,21 @@ function applyGrocerySearch(input) {
     });
     category.classList.toggle('filter-hidden', !hasVisible);
   });
+  document.querySelectorAll('.store-shopping-group').forEach(group => {
+    const hasVisibleCategory = Array.from(group.querySelectorAll('.grocery-category')).some(category => !category.classList.contains('filter-hidden'));
+    group.classList.toggle('filter-hidden', !hasVisibleCategory);
+  });
   const empty = document.querySelector('.grocery-empty-search');
   if (empty) empty.classList.toggle('filter-hidden', !term || visible > 0);
 }
 function handleInput(event) {
   const el = event.target;
+  if (el.matches('[data-profile-field="name"]')) {
+    state.profile.name = String(el.value || '').slice(0, 32);
+    saveState();
+    syncVisibleProfileName(state.profile.name);
+    return;
+  }
   if (el.matches('[data-search="onboarding-stores"]')) {
     storeSearch = el.value;
     applyStoreSearch(el, '.store-option');
